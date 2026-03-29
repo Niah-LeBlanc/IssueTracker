@@ -224,7 +224,8 @@ router.patch('/:userId', attachSession, isAuthenticated, hasPermission("canEditA
       updates.password = await genPassword(updates.password);
     };
     await updateUser(userId, updates)
-    debugUser(`Success: (PATCH/:userId ${user._id})`);
+    debugUser(`Success: (PATCH/:userId ${userId})`);
+    return res.status(200).json([{ message: `User ${userId} updated successfully.` }]);
     return res.status(200).json([{ message: `User ${userId} updated successfully.` }]);
   } catch (err) {
     if(err.status){

@@ -12,7 +12,7 @@ import {getByField,
 //|==================================================|
 //|------------------[-AUTHENTICATION-]--------------|
 //|==================================================|
-import { hasPermission, isAuthenticated } 
+import { attachSession, hasPermission, isAuthenticated } 
 from '../../middleware/authentication.js';
 //|==================================================|
 //|-------------------[-VALIDATION-]-----------------|
@@ -44,6 +44,7 @@ router.use(express.json());
 //|-----------[-GET-ALL-COMMENTS-FOR-A-BUG-]---------|
 //|==================================================|
 router.get('/:bugId/comments',
+ attachSession,
  isAuthenticated,
  hasPermission("canViewData"),
  validId('bugId'),
@@ -51,7 +52,7 @@ router.get('/:bugId/comments',
   try {
     debugComments(`GET /:bugId/comments hit`);
     const { bugId } = req.params;
-    const bugData = await getByField('bugs', '_id', bugId)
+    const bugData = await getByField('bug', '_id', bugId)
     if (!bugData.comments || bugData.comments.length === 0) {
       return res.status(404).json({ error: `Bug ${bugId} has no comments.` });
     };
@@ -69,6 +70,7 @@ router.get('/:bugId/comments',
 //|-----------[-GET-A-SPECIFIC-COMMENT-BY-ID-]-------|
 //|==================================================|
 router.get('/:bugId/comments/:commentId',
+ attachSession,
  isAuthenticated,
  hasPermission("canViewData"),
  validId('bugId'),
@@ -95,6 +97,7 @@ router.get('/:bugId/comments/:commentId',
 //|----------[-POST-A-NEW-COMMENT-TO-A-BUG-]---------|
 //|==================================================|
 router.post('/:bugId/comments',
+ attachSession,
  isAuthenticated,
  hasPermission("canAddComments"),
  validId('bugId'),
@@ -119,9 +122,9 @@ router.post('/:bugId/comments',
 //|====================================================================================================|
 //|-------------------------------------------[-FUNCTIONS-]--------------------------------------------|
 //|====================================================================================================|
-function autoCatch(err, res){ validId('bugId')
-    console.error(err);
-    return res.status(err.status).json({ error: err.message });
+function autoCatch(err, res) {
+  console.error(err);
+  return res.status(err.status).json({ error: err.message });
 };
 //|====================================================================================================|
 //|-----------------------------------------[-EXPORT-ROUTER-]------------------------------------------|

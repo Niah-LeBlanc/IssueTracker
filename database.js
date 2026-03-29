@@ -225,6 +225,52 @@ export async function insertIntoDocument(collectionName, documentId, arrayFieldN
   return result;
 };
 //|================================================|
+//|----------[-UPDATE-NESTED-ITEM-]----------------| 
+//|================================================|
+export async function updateNestedItem(collectionName, documentId, arrayFieldName, nestedItemId, updates) {
+  const setFields = {};
+  for (const [key, value] of Object.entries(updates)) {
+    setFields[`${arrayFieldName}.$.${key}`] = value;
+  }
+  setFields[`${arrayFieldName}.$.lastUpdated`] = new Date();
+
+  const result = await db.collection(collectionName).updateOne(
+    { _id: documentId, [`${arrayFieldName}._id`]: nestedItemId },
+    { $set: setFields }
+  );
+  if (!result.matchedCount) {
+    const err = new Error(`${nestedItemId} not found`);
+    err.status = 404;
+    throw err;
+  }
+  if (!result.modifiedCount) {
+    const err = new Error(`No changes were made`);
+    err.status = 400;
+    throw err;
+  }
+  return result;
+}
+//|================================================|
+//|----------[-DELETE-NESTED-ITEM-]----------------|
+//|================================================|
+export async function deleteNestedItem(collectionName, documentId, arrayFieldName, nestedItemId) {
+  const result = await db.collection(collectionName).updateOne(
+    { _id: documentId },
+    { $pull: { [arrayFieldName]: { _id: nestedItemId } } }
+  );
+  if (!result.matchedCount) {
+    const err = new Error(`Document ${documentId} not found`);
+    err.status = 404;
+    throw err;
+  }
+  if (!result.modifiedCount) {
+    const err = new Error(`Item ${nestedItemId} not found in ${arrayFieldName}`);
+    err.status = 404;
+    throw err;
+  }
+  return result;
+}
+//|================================================|
 //|--------------[-DELETE-BY-OBJECT-]--------------|
 //|================================================|
 export async function deleteByObject(collectionName, fieldName, fieldValue) {

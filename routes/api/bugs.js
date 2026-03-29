@@ -153,11 +153,7 @@ router.patch('/:bugId',
  attachSession,
  isAuthenticated,
  validId('bugId'),
- hasPermission(
-  "canViewData",
-  "canEditIfAssignedTo",
-  "canEditMyBug"
- ),
+ hasPermission("canViewData"),
  validBody(bugPatchSchema),
  async (req, res) => {
   try {
@@ -182,10 +178,7 @@ router.patch('/:bugId/classify',
  attachSession,
  isAuthenticated,
  validId('bugId'),
- hasPermission(
- "canViewData",
- "canEditIfAssignedTo",
- "canEditMyBug"),
+ hasPermission("canViewData"),
  validBody(bugClassifySchema),
  async (req, res) => {
   try {
@@ -212,18 +205,14 @@ router.patch('/:bugId/assign',
  attachSession,
  isAuthenticated,
  validId('bugId'),
- hasPermission(
-  "canReassignAnyBug",
-  "canReassignIfAssignedTo",
-  "canEditMyBug"
- ),
+ hasPermission("canReassignAnyBug"),
  validBody(bugAssignSchema),
  async (req, res) => {
   try {
     const { bugId } = req.params;
-    const assignedToUserId = req.body;
-    const userId  = validId(Object.values(assignedToUserId)[0]);
-    const user = await getByField('users', '_id', userId)
+    const { assignedToUserId } = req.body;
+    const userId = new (await import('mongodb')).ObjectId(assignedToUserId);
+    const user = await getByField('user', '_id', userId)
     await assignBugToUser(userId, bugId)
     debugBug(`Success: (PATCH/bugId/assign: ${bugId})`);
     return res.status(200).json({ message: `Bug ${bugId} assigned to ${user.fullName}` });
